@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Dashboard</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        select {
+            width: 100%;
+            padding: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            margin: 10px 0;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <h1>Employee Dashboard</h1>
+    <table id="tasksTable">
+        <thead>
+            <tr>
+                <th>Task ID</th>
+                <th>Description</th>
+                <th>Priority</th>
+                <th>Created At</th>
+                <th>Status</th>
+                <th>Complexity</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Task rows will be inserted here dynamically -->
+        </tbody>
+    </table>
+    <button id="saveChangesButton" disabled>Save Changes</button>
+
+    <script>
+        let updatedTasks = {}; // Object to hold updated task data
+
+        // Fetch tasks from the server
+        fetch('/employee_dashboard')
+            .then(response => {
+                const contentType = response.headers.get('Content-Type');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch tasks');
+                }
+                if (contentType && contentType.includes('application/json')) {
+                    return response.json();
+                } else {
+                    return response.text().then(text => {
+                        throw new Error(`Expected JSON but received HTML: ${text}`);
+                    });
+                }
+            })
+            .then(tasks => {
+                const tableBody = document.querySelector('#tasksTable tbody');
+                const saveButton = document.getElementById('saveChangesButton');
+
+                // Populate the table with task data
+                tasks.forEach(task => {
+                    const row = document.createElement('tr');
+
+                    row.innerHTML = `
+                        <td>${task.task_id}</td>
+                        <td>${task.task_description}</td>
+                        <td>
+                            <select class="priority-dropdown">
+                                <option value="Low" ${task.priority === 'Low' ? 'selected' : ''}>Low</option>
+                                <option value="Medium" ${task.priority === 'Medium' ? 'selected' : ''}>Medium</option>
+                                <option value="High" ${task.priority === 'High' ? 'selected' : ''}>High</option>
+                            </select>
+                        </td>
+                        <td>${task.created_at}</td>
+                        <td>
+                            <select class="status-dropdown">
+                                <option value="Pending" ${task.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                                <option value="In Progress" ${task.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                                <option value="Completed" ${task.status === 'Completed' ? 'selected' : ''}>Completed</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="complexity-dropdown">
+                                <option value="Low" ${task.complexity === 'Low' ? 'selected' : ''}>Low</option>
+                                <option value="Medium" ${task.complexity === 'Medium' ? 'selected' : ''}>Medium</option>
+                                <option value="High" ${task.complexity === 'High' ? 'selected' : ''}>High</option>
+                            </select>
+                        </td>
+                    `;
+
+                    tableBody.appendChild(row);
+                });
+
+                // Add event listener to capture changes
+                tableBody.addEventListener('change', event => {
+                    if (event.target.tagName === 'SELECT') {
+                        const row = event.target.closest('tr');
+                        const taskId = row.children[0].textContent; // Get Task ID
+                        const updatedPriority = row.querySelector('.priority-dropdown').value;
+                        const updatedStatus = row.querySelector('.status-dropdown').value;
+                        const updatedComplexity = row.querySelector('.complexity-dropdown').value;
+
+                        // Store updated task data
+                        updatedTasks[taskId] = {
+                            task_id: taskId,
+                            priority: updatedPriority,
+                            status: updatedStatus,
+                            complexity: updatedComplexity
+                        };
+
+                        // Enable the Save button
+                        saveButton.disabled = false;
+                    }
+                });
+
+                // Save changes on button click
+                saveButton.addEventListener('click', () => {
+                    const tasksToUpdate = Object.values(updatedTasks);
+
+                    // Iterate over the updated tasks and send individual update requests
+                    const updatePromises = tasksToUpdate.map(task => {
+                        return fetch(`/update_task/${task.task_id}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                priority: task.priority,
+                                status: task.status,
+                                complexity: task.complexity
+                            }),
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`Failed to update task ${task.task_id}`);
+                            }
+                            return response.json();
+                        })
+                        .catch(error => {
+                            console.error('Error updating task:', error);
+                            alert(`Failed to update task ${task.task_id}`);
+                        });
+                    });
+
+                    // Wait for all update requests to complete
+                    Promise.all(updatePromises)
+                        .then(() => {
+                            console.log('All tasks updated successfully');
+                            updatedTasks = {}; // Clear the updatedTasks object
+                            saveButton.disabled = true;
+                            alert('Changes saved successfully!');
+                        })
+                        .catch(error => {
+                            console.error('Error saving changes:', error);
+                            alert('Failed to save changes. Please try again.');
+                        });
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to load tasks.');
+            });
+    </script>
+</body>
+</html>

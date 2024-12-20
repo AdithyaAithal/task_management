@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            width: 80%;
+            margin: 20px auto;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        table th, table td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        table th {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .error-message {
+            color: red;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .task-form {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            background-color: #fff;
+        }
+
+        .task-form label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .task-form input, .task-form select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .task-form button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .task-form button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Admin Dashboard</h2>
+
+        <!-- Task Form -->
+        <div class="task-form">
+            <h3>Add New Task</h3>
+            <form id="task-form">
+                <label for="task_id">Task ID</label>
+                <input type="text" id="task_id" name="task_id" required>
+
+                <label for="task_description">Task Description</label>
+                <input type="text" id="task_description" name="task_description" required>
+
+                <label for="priority">Priority</label>
+                <select id="priority" name="priority" required>
+                    <option value="High">High</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Low">Low</option>
+                </select>
+
+                <label for="employee_id">Employee ID</label>
+                <input type="text" id="employee_id" name="employee_id" required>
+
+                <button type="submit">Add Task</button>
+            </form>
+        </div>
+
+        <!-- Loading and Error Messages -->
+        <div id="loading" class="loading">Loading tasks...</div>
+        <div id="error-message" class="error-message"></div>
+
+        <!-- Tasks Table -->
+        <table id="tasks-table">
+            <thead>
+                <tr>
+                    <th>Task ID</th>
+                    <th>Task Description</th>
+                    <th>Priority</th>
+                    <th>Created At</th>
+                    <th>Status</th>
+                    <th>Complexity</th>
+                    <th>Employee ID</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Tasks will be populated here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Fetch tasks data for the admin dashboard
+        function fetchTasks() {
+            fetch('/admin_dashboard')
+                .then(response => {
+                    if (response.ok) {
+                        return response.json(); // Parse tasks data as JSON
+                    } else if (response.status === 403) {
+                        // Redirect to login if unauthorized
+                        window.location.href = '/login.html';
+                    } else {
+                        throw new Error('Failed to fetch tasks');
+                    }
+                })
+                .then(data => {
+                    // Hide the loading message
+                    document.getElementById("loading").style.display = "none";
+
+                    // Populate the table if data is available
+                    const tableBody = document.getElementById("tasks-table").getElementsByTagName("tbody")[0];
+                    tableBody.innerHTML = ""; // Clear existing rows
+
+                    if (data.length > 0) {
+                        data.forEach(task => {
+                            const row = tableBody.insertRow();
+                            row.innerHTML = `
+                                <td>${task.task_id}</td>
+                                <td>${task.task_description}</td>
+                                <td>${task.priority}</td>
+                                <td>${task.created_at}</td>
+                                <td>${task.status}</td>
+                                <td>${task.complexity}</td>
+                                <td>${task.employee_id}</td>
+                            `;
+                        });
+                    } else {
+                        document.getElementById("error-message").textContent = "No tasks found.";
+                    }
+                })
+                .catch(error => {
+                    console.error("Error fetching tasks:", error);
+                    document.getElementById("loading").style.display = "none";
+                    document.getElementById("error-message").textContent = "An error occurred while loading tasks.";
+                });
+        }
+
+        // Handle form submission for adding a new task
+        document.getElementById("task-form").addEventListener("submit", function (event) {
+            event.preventDefault(); // Prevent form from submitting normally
+
+            const taskData = {
+                task_id: document.getElementById("task_id").value,
+                task_description: document.getElementById("task_description").value,
+                priority: document.getElementById("priority").value,
+                employee_id: document.getElementById("employee_id").value,
+            };
+
+            fetch('/add_task', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(taskData),
+            })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error('Failed to add task');
+                    }
+                })
+                .then(data => {
+                    alert(data.message); // Show success message
+                    fetchTasks(); // Refresh the tasks table
+                })
+                .catch(error => {
+                    console.error("Error adding task:", error);
+                    alert("An error occurred while adding the task.");
+                });
+        });
+
+        // Initial fetch of tasks
+        fetchTasks();
+    </script>
+</body>
+</html>
