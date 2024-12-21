@@ -64,7 +64,7 @@
         let updatedTasks = {}; // Object to hold updated task data
 
         // Fetch tasks from the server
-        fetch('https://task-management-1-ki3h.onrender.com/employee_dashboard')
+        fetch('https://task-management-1-ki3h.onrender.com:3000/employee_dashboard')
             .then(response => {
                 const contentType = response.headers.get('Content-Type');
                 if (!response.ok) {
@@ -144,7 +144,7 @@
 
                     // Iterate over the updated tasks and send individual update requests
                     const updatePromises = tasksToUpdate.map(task => {
-                        return fetch(`https://task-management-1-ki3h.onrender.com/update_task/${task.task_id}`, {
+                        return fetch(`https://task-management-1-ki3h.onrender.com:3000/update_task/${task.task_id}`, {
                             method: 'PUT',
                             headers: {
                                 'Content-Type': 'application/json',
