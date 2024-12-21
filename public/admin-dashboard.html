@@ -139,7 +139,7 @@
     <script>
         // Fetch tasks data for the admin dashboard
         function fetchTasks() {
-            fetch('https://task-management-1-ki3h.onrender.com/admin_dashboard')
+            fetch('https://task-management-1-ki3h.onrender.com:3000/admin_dashboard')
                 .then(response => {
                     if (response.ok) {
                         return response.json(); // Parse tasks data as JSON
@@ -193,7 +193,7 @@
                 employee_id: document.getElementById("employee_id").value,
             };
 
-            fetch('https://task-management-1-ki3h.onrender.com/add_task', {
+            fetch('https://task-management-1-ki3h.onrender.com:3000/add_task', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
