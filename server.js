@@ -1,9 +1,10 @@
+require('dotenv').config();
 const express = require('express');
 const db = require('./db'); // Assuming this is your database connection module
 const session = require('express-session');
 const app = express();
 const path = require('path')
-
+const port = process.env.PORT || 3000
 app.use(express.json());  // To parse JSON request bodies
 app.use(express.urlencoded({ extended: true })); // To parse URL-encoded data
 
@@ -15,7 +16,7 @@ app.use(session({
 }));
 
 // app.use(express.static('public')); //very important line 
-app.use(express.static(path.join(__dirname, 'public'))); // Serve files from 'public' directory
+app.use(express.static(path.join(__dirname, 'public'))); // Serve files from 'public' directory;
 
 app.post('/login', (req, res) => {
   const { username, password } = req.body;
@@ -169,6 +170,6 @@ app.get('/logout', (req, res) => {
   });
 });
 
-app.listen(3000, () => {
+app.listen(port, () => {
   console.log('Server is running on port 3000');
 });
