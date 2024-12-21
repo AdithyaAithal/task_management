@@ -1,10 +1,9 @@
-require('dotenv').config();
 const express = require('express');
 const db = require('./db'); // Assuming this is your database connection module
 const session = require('express-session');
 const app = express();
 const path = require('path')
-const port = process.env.PORT || 3000
+const port = 3000
 app.use(express.json());  // To parse JSON request bodies
 app.use(express.urlencoded({ extended: true })); // To parse URL-encoded data
 
