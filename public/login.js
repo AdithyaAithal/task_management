@@ -7,7 +7,7 @@ document.getElementById("loginForm").addEventListener("submit", function (event)
     const password = document.getElementById("password").value.trim();
 
     // Perform a fetch request to the login endpoint
-    fetch('/login', {
+    fetch('https://task-management-1-ki3h.onrender.com/login', {
         method: 'POST', // HTTP POST method for sending login credentials
         headers: {
             'Content-Type': 'application/json', // Send the data in JSON format
