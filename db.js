@@ -2,10 +2,10 @@ const mysql = require('mysql');
 
 // Create a connection pool to the MySQL database
 const db = mysql.createPool({
-  host: 'sql5.freesqldatabase.com', // MySQL host (use your database server's address if not local)
-  user: 'sql5753226', // MySQL username
-  password: 'JPPr6pyYwt', // MySQL password
-  database: 'sql5753226', // Name of your database
+ host: 'sql12.freesqldatabase.com', // MySQL host (use your database server's address if not local)
+  user: 'sql12754654', // MySQL username
+  password: 'pRppCQ4PDB', // MySQL password
+  database: 'sql12754654', // Name of your database
   port: '3306',
   connectionLimit: 10, // Limit the number of simultaneous connections
 });
